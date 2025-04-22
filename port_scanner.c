@@ -31,3 +31,29 @@ const char* get_service_name(int port) {
         default: return "Unknown";
     }
 }
+
+
+int main() {
+    WSADATA wsa;
+    char ip[16];
+    int start_port, end_port;
+
+    // Initialize Winsock
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        printf("WSAStartup failed: %d\n", WSAGetLastError());
+        return 1;
+    }
+
+    printf("Enter IP address: ");
+    scanf("%15s", ip);
+
+    printf("Enter start port: ");
+    scanf("%d", &start_port);
+
+    printf("Enter end port: ");
+    scanf("%d", &end_port);
+
+    printf("\n[*] Scanning %s (Ports %d-%d)...\n\n", ip, start_port, end_port);
+
+
+}
