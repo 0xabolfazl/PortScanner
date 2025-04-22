@@ -88,5 +88,45 @@ int main() {
 
     printf("\n[*] Scanning %s (Ports %d-%d)...\n\n", ip, start_port, end_port);
 
+    HANDLE threads[MAX_THREADS];
+    ScanArgs args[MAX_PORTS];
+    int thread_count = 0;
 
+    // Scan ports in batches using threads
+    for (int port = start_port; port <= end_port; port++) {
+        if (thread_count >= MAX_THREADS) {
+            // Wait for current batch to finish
+            WaitForMultipleObjects(thread_count, threads, TRUE, INFINITE);
+            for (int i = 0; i < thread_count; i++) {
+                CloseHandle(threads[i]);
+            }
+            thread_count = 0;
+        }
+
+        // Configure thread arguments
+        strcpy_s(args[thread_count].ip, sizeof(args[thread_count].ip), ip);
+        args[thread_count].port = port;
+
+        // Create new thread
+        threads[thread_count] = CreateThread(
+            NULL, 0, scan_port, &args[thread_count], 0, NULL
+        );
+
+        if (threads[thread_count] == NULL) {
+            printf("Thread creation failed: %d\n", GetLastError());
+            continue;
+        }
+
+        thread_count++;
+    }
+
+    // Wait for remaining threads
+    WaitForMultipleObjects(thread_count, threads, TRUE, INFINITE);
+    for (int i = 0; i < thread_count; i++) {
+        CloseHandle(threads[i]);
+    }
+
+    printf("\n[*] Scan completed!\n");
+    WSACleanup(); // Cleanup Winsock
+    return 0;
 }
