@@ -32,6 +32,39 @@ const char* get_service_name(int port) {
     }
 }
 
+// Thread function to scan a single port
+DWORD WINAPI scan_port(LPVOID args) {
+    ScanArgs* scan_args = (ScanArgs*)args;
+    SOCKET sock;
+    struct sockaddr_in server;
+    DWORD timeout = TIMEOUT_MS;
+
+    // Create TCP socket
+    sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sock == INVALID_SOCKET) {
+        printf("Socket error: %d\n", WSAGetLastError());
+        return 1;
+    }
+
+    // Configure server address
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = inet_addr(scan_args->ip);
+    server.sin_port = htons(scan_args->port);
+
+    // Set connection timeout
+    setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeout, sizeof(timeout));
+
+    // Attempt connection
+    if (connect(sock, (struct sockaddr*)&server, sizeof(server)) == SOCKET_ERROR) {
+        closesocket(sock);
+        return 0;
+    }
+
+    // If connection succeeds, port is open
+    closesocket(sock);
+    printf("[+] Port %5d - Open (%s)\n", scan_args->port, get_service_name(scan_args->port));
+    return 0;
+}
 
 int main() {
     WSADATA wsa;
