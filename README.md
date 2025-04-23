@@ -1,4 +1,4 @@
-# Port Scanneق
+# Port Scanner
 
 ## Overview
 A multi-threaded TCP port scanner written in C for Windows systems that detects open ports and identifies common services.
